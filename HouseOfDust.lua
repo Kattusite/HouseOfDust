@@ -45,10 +45,13 @@ end
 function InitMeter(meter)
 	IDa, IDb = MeterID(meter)
 
-	-- Only display the first N groups
-	if tonumber(IDa) > tonumber(SKIN:GetVariable('MaxGroups', 20)) then
-		SetOption(meter, 'Hidden', 1)
-	end
+	-- Initially all groups are hidden
+	SetOption(meter, 'Hidden', 1)
+
+	-- -- Only display the first N groups
+	-- if tonumber(IDa) > tonumber(SKIN:GetVariable('MaxGroups', 20)) then
+	-- 	SetOption(meter, 'Hidden', 1)
+	-- end
 
 	-- If ABCD, then apply text-only styling
 	if IDb == 'A' or IDb == 'B' or IDb == 'C' or IDb == 'D' then
@@ -67,7 +70,7 @@ function InitMeter(meter)
 
 	yLN = SKIN:GetVariable('LineSpacing')
 	yGP = SKIN:GetVariable('GroupSpacing')
-	yOffsets = {P=yLN..'R', Q='0r', A='0r', B=yLN..'R', C=yLN..'R', D=yLN..'R'}
+	yOffsets = {P=yGP..'R', Q='0r', A='0r', B=yLN..'R', C=yLN..'R', D=yLN..'R'}
 	y = yOffsets[IDb]
 
 	if IDa == '1' and IDb == 'P' then
@@ -86,12 +89,21 @@ end
 -- Meter4B.Text = world
 -- ...
 function SetGroupText(groupNum, texts)
-	print(texts, texts['A'], texts['B'])
 	for i = iA, #lets do -- for let in A-D
 		ltr = lets[i]
 		meter = SKIN:GetMeter('Meter'..groupNum..ltr)
 		SetOption(meter, 'Text', texts[ltr])
 	end
+end
+
+function GetGroupText(groupNum)
+	texts = {}
+	for i = iA, #lets do -- for let in A-D
+		ltr = lets[i]
+		meter = SKIN:GetMeter('Meter'..groupNum..ltr)
+		texts[ltr] = meter:GetOption('Text')
+	end
+	return texts
 end
 
 -- Build a random message of the form given in TextA, TextB, TextC, TextD and
@@ -122,6 +134,13 @@ function RandomMessage()
 	return result
 end
 
+function UnhideGroup(groupNum)
+	for i=1,6 do
+		meter = SKIN:GetMeter('Meter'..groupNum..lets[i])
+		SetOption(meter, 'Hidden', 0)
+	end
+end
+
 function Update()
 	min = SELF:GetOption("Min", 0)
 	max = SELF:GetOption("Max", 10)
@@ -130,9 +149,31 @@ function Update()
 	-- Generate a new message for the bottom-most empty cell
 	-- Move all other cells up by one if not full, deleting the first one if needed
 	-- If not at the max number of cells,
-	for i = 1, 19 do
-		newMsg = RandomMessage()
-		SetGroupText(i, newMsg)
+	oldMsg = {}
+	max_groups = tonumber(SKIN:GetVariable('MaxGroups'))
+	num_messages = math.min(num_messages+1, max_groups)
+	print('N=', num_messages)
+	for i = num_messages,1,-1 do
+		-- Add a new verse in the bottommost slot, overwriting if necessary
+		if i == num_messages then
+			newMsg = RandomMessage()
+			oldMsg = GetGroupText(i)
+			SetGroupText(i, newMsg)
+
+			-- Special case: when the list fills for the first time there is no valid oldMsg
+			if oldMsg['A']:sub(1,5) == "Meter" then
+				UnhideGroup(i)
+				break
+			end
+		-- If all slots are full, shift overwritten slots upwards
+		elseif num_messages == max_groups then
+			newMsg = oldMsg
+			oldMsg = GetGroupText(i)
+			SetGroupText(i, newMsg)
+		-- If all slots are not full, we are done.
+		else
+			break
+		end
+		UnhideGroup(i)
 	end
-	return Choose(material)
 end

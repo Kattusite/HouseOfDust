@@ -1,18 +1,15 @@
-rect = """
-[Meter{i}{x}]
+rect = """[Meter{i}{x}]
 Meter=Shape
-MyGradient=180 | #Background# ; 0.0 | #Background2# ; 1.0
+MyGradient=180 | #Background# ; 0.0  | #Background# ; 0.6 | #Background2# ; 1.0
 Shape=Rectangle 0,0,#RectWidth#,#RectHeight#,#RectRadius# | Fill LinearGradient MyGradient | Stroke Color 0,0,0,1
 """
 
-sm_rect = """
-[Meter{i}{x}]
+sm_rect = """[Meter{i}{x}]
 Meter=Shape
-Shape=Rectangle 0,0,5,#RectHeight# | Fill Color 150,0,0 | Stroke Color 0,0,0,1
+Shape=Rectangle 0,0,5,#RectHeight# | Fill Color #Accent# | Stroke Color 0,0,0,1
 """
 
-text = """
-[Meter{i}{x}]
+text = """[Meter{i}{x}]
 Meter=String
 MeasureName=MyMeasure
 """
